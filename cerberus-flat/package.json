@@ -1,0 +1,9 @@
+{
+  "name": "cerberus-tutor",
+  "version": "1.0.0",
+  "description": "Tutor Interactivo para Cerberus 14.5 — NOV CTES Coiled Tubing Simulator",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}

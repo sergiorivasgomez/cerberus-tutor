@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cerberus 14.5 — Tutor Interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --oil-black: #0a0c0f;
+    --pipe-dark: #111520;
+    --panel-bg: #141924;
+    --card-bg: #1a2030;
+    --border: #1e2d45;
+    --accent-blue: #0d9de8;
+    --accent-teal: #00c9a7;
+    --accent-orange: #ff6b35;
+    --accent-yellow: #f5c518;
+    --text-primary: #e8edf5;
+    --text-secondary: #7a8ba0;
+    --text-dim: #3d5068;
+    --glow-blue: rgba(13,157,232,0.15);
+    --glow-teal: rgba(0,201,167,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--oil-black);
+    color: var(--text-primary);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(13,157,232,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(13,157,232,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* SCANLINE EFFECT */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .app-wrapper {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  /* ============ HEADER ============ */
+  header {
+    background: linear-gradient(135deg, #0d1520 0%, #0a1018 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  }
+
+  .logo-mark {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(13,157,232,0.4);
+  }
+
+  .header-title h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+  }
+
+  .header-title span {
+    font-size: 11px;
+    color: var(--accent-teal);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .header-badges {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  .badge-version {
+    background: rgba(13,157,232,0.1);
+    border: 1px solid rgba(13,157,232,0.3);
+    color: var(--accent-blue);
+  }
+
+  .badge-status {
+    background: rgba(0,201,167,0.1);
+    border: 1px solid rgba(0,201,167,0.3);
+    color: var(--accent-teal);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-teal);
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ============ MAIN LAYOUT ============ */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+  }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar {
+    background: var(--pipe-dark);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .sidebar-section {
+    padding: 16px 16px 8px;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 8px 12px 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    background: rgba(13,157,232,0.06);
+    color: var(--text-primary);
+    border-color: rgba(13,157,232,0.1);
+  }
+
+  .nav-item.active {
+    background: rgba(13,157,232,0.12);
+    color: var(--accent-blue);
+    border-color: rgba(13,157,232,0.25);
+  }
+
+  .nav-item .nav-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .nav-item.active .nav-icon {
+    background: rgba(13,157,232,0.15);
+  }
+
+  .nav-item .nav-text { flex: 1; line-height: 1.3; }
+  .nav-item .nav-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Quick Actions */
+  .quick-actions {
+    padding: 12px 16px;
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+  }
+
+  .quick-btn {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,107,53,0.3);
+    background: rgba(255,107,53,0.06);
+    color: var(--accent-orange);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .quick-btn:hover {
+    background: rgba(255,107,53,0.12);
+    border-color: rgba(255,107,53,0.5);
+  }
+
+  .quick-btn.teal {
+    border-color: rgba(0,201,167,0.3);
+    background: rgba(0,201,167,0.06);
+    color: var(--accent-teal);
+  }
+
+  .quick-btn.teal:hover {
+    background: rgba(0,201,167,0.12);
+  }
+
+  /* ============ CHAT AREA ============ */
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    background: var(--oil-black);
+    overflow: hidden;
+  }
+
+  /* Module Header */
+  .module-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel-bg);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .module-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .module-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .module-chip {
+    margin-left: auto;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(245,197,24,0.1);
+    border: 1px solid rgba(245,197,24,0.25);
+    color: var(--accent-yellow);
+  }
+
+  /* Messages */
+  .messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .messages-container::-webkit-scrollbar { width: 4px; }
+  .messages-container::-webkit-scrollbar-track { background: transparent; }
+  .messages-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .msg {
+    display: flex;
+    gap: 12px;
+    animation: fadeSlideIn 0.3s ease;
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+  }
+
+  .msg.bot .msg-avatar {
+    background: linear-gradient(135deg, rgba(13,157,232,0.2), rgba(0,201,167,0.2));
+    border: 1px solid rgba(13,157,232,0.3);
+    color: var(--accent-blue);
+    font-size: 14px;
+  }
+
+  .msg.user .msg-avatar {
+    background: rgba(245,197,24,0.1);
+    border: 1px solid rgba(245,197,24,0.25);
+    color: var(--accent-yellow);
+    font-size: 12px;
+  }
+
+  .msg-bubble {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .msg.bot .msg-bubble {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+    color: var(--text-primary);
+  }
+
+  .msg.user .msg-bubble {
+    background: rgba(13,157,232,0.1);
+    border: 1px solid rgba(13,157,232,0.2);
+    border-top-right-radius: 4px;
+    color: var(--text-primary);
+    text-align: right;
+  }
+
+  /* Formatted content inside bot messages */
+  .msg-bubble h4 {
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--accent-blue);
+    font-size: 15px;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .msg-bubble .step-list {
+    list-style: none;
+    margin-top: 8px;
+  }
+
+  .msg-bubble .step-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    border-left: 2px solid var(--accent-teal);
+    font-size: 13px;
+  }
+
+  .msg-bubble .step-list li .step-num {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent-teal);
+    font-size: 11px;
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .msg-bubble .info-box {
+    background: rgba(13,157,232,0.06);
+    border: 1px solid rgba(13,157,232,0.15);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .msg-bubble .info-box strong {
+    color: var(--accent-blue);
+  }
+
+  .msg-bubble .warn-box {
+    background: rgba(255,107,53,0.06);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #ffa07a;
+  }
+
+  .msg-bubble .tag-inline {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0,201,167,0.1);
+    border: 1px solid rgba(0,201,167,0.2);
+    color: var(--accent-teal);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    margin: 2px;
+  }
+
+  /* Quick replies */
+  .quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .quick-reply-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(13,157,232,0.25);
+    background: rgba(13,157,232,0.06);
+    color: var(--accent-blue);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Exo 2', sans-serif;
+  }
+
+  .quick-reply-btn:hover {
+    background: rgba(13,157,232,0.15);
+    border-color: rgba(13,157,232,0.4);
+    transform: translateY(-1px);
+  }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-top-left-radius: 4px;
+    width: fit-content;
+  }
+
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    animation: typing 1.4s infinite;
+  }
+
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* Input area */
+  .input-area {
+    padding: 16px 24px;
+    background: var(--panel-bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 46px;
+    max-height: 120px;
+    line-height: 1.5;
+  }
+
+  .chat-input::placeholder { color: var(--text-dim); }
+  .chat-input:focus { border-color: rgba(13,157,232,0.4); }
+
+  .send-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(13,157,232,0.3);
+  }
+
+  .send-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,157,232,0.4); }
+  .send-btn:active { transform: translateY(0); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .input-hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Welcome screen */
+  .welcome-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    flex: 1;
+  }
+
+  .welcome-logo {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(13,157,232,0.15), rgba(0,201,167,0.15));
+    border: 1px solid rgba(13,157,232,0.3);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin-bottom: 24px;
+    box-shadow: 0 0 40px rgba(13,157,232,0.2);
+  }
+
+  .welcome-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .welcome-sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 32px;
+    max-width: 420px;
+    line-height: 1.6;
+  }
+
+  .welcome-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .welcome-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .welcome-card:hover {
+    border-color: rgba(13,157,232,0.3);
+    background: rgba(13,157,232,0.05);
+    transform: translateY(-2px);
+  }
+
+  .welcome-card .card-icon { font-size: 24px; margin-bottom: 10px; }
+  .welcome-card .card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .welcome-card .card-desc {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  
+</style>
+</head>
+<body>
+
+<div class="app-wrapper">
+  <!-- HEADER -->
+  <header>
+    <div class="logo-mark">CT</div>
+    <div class="header-title">
+      <h1>CERBERUS TUTOR</h1>
+      <span>NOV CTES · Coiled Tubing Simulator</span>
+    </div>
+    <div class="header-badges">
+      <div class="badge badge-version">v14.5</div>
+      <div class="badge badge-status">
+        <span class="status-dot"></span>
+        <span id="statusLabel">GEMINI IA</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-label">▸ MÓDULOS DEL SIMULADOR</div>
+
+      <div class="sidebar-section">
+        <div class="nav-item active" onclick="selectModule(this, 'inicio', '🏠', 'Inicio General', 'Bienvenida y navegación')" >
+          <div class="nav-icon">🏠</div>
+          <div class="nav-text">Inicio / General</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'instalacion', '⚙️', 'Instalación y Configuración', 'Cap. 1 & 2 — Requisitos del sistema, instalación y setup')">
+          <div class="nav-icon">⚙️</div>
+          <div class="nav-text">Instalación y Config.</div>
+          <div class="nav-num">CH1-2</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'cerberus14', '🖥️', 'Usando Cerberus 14', 'Cap. 3 — Interfaz principal, Cloud, navegación')">
+          <div class="nav-icon">🖥️</div>
+          <div class="nav-text">Usando Cerberus 14</div>
+          <div class="nav-num">CH3</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'reeltrak', '🔄', 'Reel-Trak (Fatiga CT)', 'Cap. 4 — Rastreo de fatiga de Coiled Tubing')">
+          <div class="nav-icon">🔄</div>
+          <div class="nav-text">Reel-Trak (Fatiga)</div>
+          <div class="nav-num">CH4</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'orpheus', '⚡', 'Orpheus (Fuerzas)', 'Cap. 5 — Cálculo de fuerzas, hidráulica y análisis')">
+          <div class="nav-icon">⚡</div>
+          <div class="nav-text">Orpheus (Fuerzas)</div>
+          <div class="nav-num">CH5</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'hydra', '💧', 'Hydra (Hidráulica)', 'Cap. 6 — Modelado hidráulico')">
+          <div class="nav-icon">💧</div>
+          <div class="nav-text">Hydra (Hidráulica)</div>
+          <div class="nav-num">CH6</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'velocity', '🌀', 'Velocity String', 'Cap. 7 — Strings de velocidad')">
+          <div class="nav-icon">🌀</div>
+          <div class="nav-text">Velocity String</div>
+          <div class="nav-num">CH7</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'paca', '🔩', 'PACA (Packer/Completion)', 'Cap. 8 — Análisis de Packer y Completion')">
+          <div class="nav-icon">🔩</div>
+          <div class="nav-text">PACA</div>
+          <div class="nav-num">CH8</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'solids', '🪨', 'Solids Cleanout', 'Cap. 9 — Limpieza de sólidos')">
+          <div class="nav-icon">🪨</div>
+          <div class="nav-text">Solids Cleanout</div>
+          <div class="nav-num">CH9</div>
+        </div>
+      </div>
+
+      <div class="sidebar-label">▸ EDITORES</div>
+
+      <div class="sidebar-section">
+        <div class="nav-item" onclick="selectModule(this, 'string', '📏', 'String Editor (CT)', 'Cap. 10 — Editor de strings de Coiled Tubing')">
+          <div class="nav-icon">📏</div>
+          <div class="nav-text">String Editor (CT)</div>
+          <div class="nav-num">CH10</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'toolstring', '🔧', 'Tool String Editor', 'Cap. 11 — Editor de cadena de herramientas')">
+          <div class="nav-icon">🔧</div>
+          <div class="nav-text">Tool String Editor</div>
+          <div class="nav-num">CH11</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'tooleditor', '🛠️', 'Tool Editor', 'Cap. 12 — Propiedades de herramientas individuales')">
+          <div class="nav-icon">🛠️</div>
+          <div class="nav-text">Tool Editor</div>
+          <div class="nav-num">CH12</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'well', '🕳️', 'Well Editor', 'Cap. 13 — Configuración del pozo')">
+          <div class="nav-icon">🕳️</div>
+          <div class="nav-text">Well Editor</div>
+          <div class="nav-num">CH13</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'reel', '🎣', 'Reel Editor', 'Cap. 14 — Configuración del carrete')">
+          <div class="nav-icon">🎣</div>
+          <div class="nav-text">Reel Editor</div>
+          <div class="nav-num">CH14</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'fluid', '🧪', 'Fluid Editor', 'Cap. 15 — Fluidos y propiedades')">
+          <div class="nav-icon">🧪</div>
+          <div class="nav-text">Fluid Editor</div>
+          <div class="nav-num">CH15</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'equipment', '⛽', 'Equipment Editor', 'Cap. 16 — Editor de equipos')">
+          <div class="nav-icon">⛽</div>
+          <div class="nav-text">Equipment Editor</div>
+          <div class="nav-num">CH16</div>
+        </div>
+      </div>
+
+      <div class="sidebar-label">▸ CÁLCULOS</div>
+
+      <div class="sidebar-section">
+        <div class="nav-item" onclick="selectModule(this, 'achilles', '📊', 'Achilles (Fatiga)', 'Cap. 17 — Modelo de fatiga de CT')">
+          <div class="nav-icon">📊</div>
+          <div class="nav-text">Achilles (Fatiga)</div>
+          <div class="nav-num">CH17</div>
+        </div>
+        <div class="nav-item" onclick="selectModule(this, 'hercules', '💪', 'Hercules (Límites)', 'Cap. 18 — Límites de tubing y estrés')">
+          <div class="nav-icon">💪</div>
+          <div class="nav-text">Hercules (Límites)</div>
+          <div class="nav-num">CH18</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="quick-btn teal" onclick="sendQuickMsg('Dame un resumen de todos los módulos del simulador')">
+          📋 Resumen Completo
+        </button>
+        <button class="quick-btn" onclick="sendQuickMsg('¿Cuáles son los requisitos mínimos del sistema para Cerberus 14.5?')">
+          ⚠️ Requisitos del Sistema
+        </button>
+        <button class="quick-btn teal" onclick="sendQuickMsg('¿Cómo creo un nuevo proyecto en Cerberus?')">
+          ➕ Crear Nuevo Proyecto
+        </button>
+      </div>
+    </aside>
+
+    <!-- CHAT AREA -->
+    <div class="chat-area">
+      <!-- Module header -->
+      <div class="module-header">
+        <div style="font-size:22px" id="moduleIcon">🏠</div>
+        <div>
+          <div class="module-title" id="moduleTitle">Inicio General</div>
+          <div class="module-desc" id="moduleDesc">Bienvenida y navegación por el tutor</div>
+        </div>
+        <div class="module-chip" id="moduleChip">GENERAL</div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages-container" id="messages">
+        <!-- Welcome screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-logo">⚙️</div>
+          <div class="welcome-title">CERBERUS TUTOR IA</div>
+          <div class="welcome-sub">Tu asistente inteligente para el Simulador Cerberus 14.5. Haz preguntas, sigue guías paso a paso, y domina todas las operaciones de Coiled Tubing.</div>
+          <div class="welcome-cards">
+            <div class="welcome-card" onclick="sendQuickMsg('¿Cómo inicio Cerberus por primera vez?')">
+              <div class="card-icon">🚀</div>
+              <div class="card-title">Primer Inicio</div>
+              <div class="card-desc">Guía para abrir y autorizar Cerberus por primera vez</div>
+            </div>
+            <div class="welcome-card" onclick="sendQuickMsg('Explícame cómo crear un Job en Reel-Trak paso a paso')">
+              <div class="card-icon">🔄</div>
+              <div class="card-title">Crear un Job CT</div>
+              <div class="card-desc">Flujo completo para configurar un trabajo de Coiled Tubing</div>
+            </div>
+            <div class="welcome-card" onclick="sendQuickMsg('¿Cómo realizo cálculos de fuerzas en Orpheus?')">
+              <div class="card-icon">⚡</div>
+              <div class="card-title">Cálculo de Fuerzas</div>
+              <div class="card-desc">Análisis de fuerzas en Orpheus para operaciones en pozo</div>
+            </div>
+            <div class="welcome-card" onclick="sendQuickMsg('¿Cómo configuro un pozo en el Well Editor?')">
+              <div class="card-icon">🕳️</div>
+              <div class="card-title">Configurar Pozo</div>
+              <div class="card-desc">Pasos para definir el perfil del pozo en Well Editor</div>
+            </div>
+            <div class="welcome-card" onclick="sendQuickMsg('¿Qué es Cerberus Cloud y cómo funciona?')">
+              <div class="card-icon">☁️</div>
+              <div class="card-title">Cerberus Cloud</div>
+              <div class="card-desc">Compartir datos y gestión de acceso en la nube</div>
+            </div>
+            <div class="welcome-card" onclick="sendQuickMsg('¿Cómo interpreto los resultados de fatiga de CT en Achilles?')">
+              <div class="card-icon">📊</div>
+              <div class="card-title">Análisis de Fatiga</div>
+              <div class="card-desc">Interpretación de resultados del modelo Achilles</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        <div class="input-row">
+          <textarea
+            class="chat-input"
+            id="chatInput"
+            placeholder="Pregunta sobre cualquier operación de Cerberus 14.5... (Ej: ¿Cómo configuro los parámetros de fluido en Hydra?)"
+            rows="1"
+            onkeydown="handleKeydown(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+        </div>
+        <div class="input-hint">
+          <span style="color:var(--accent-teal)">↵</span> ENTER para enviar &nbsp;·&nbsp;
+          <span style="color:var(--accent-teal)">⇧↵</span> SHIFT+ENTER nueva línea &nbsp;·&nbsp;
+          <span id="aiIndicator" style="color:var(--accent-teal)">🤖 GEMINI ACTIVO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ STATE ============
+let geminiModel = 'gemini-2.0-flash';
+const useAI = true;
+let currentModule = 'inicio';
+let isTyping = false;
+
+// ============ KNOWLEDGE BASE ============
+const knowledge = {
+  instalacion: {
+    title: 'Instalación y Configuración',
+    chip: 'CH 1-2',
+    steps: `<h4>⚙️ Requisitos del Sistema</h4>
+    <ul class="step-list">
+      <li><span class="step-num">OS</span>Windows 10™ (64-bit)</li>
+      <li><span class="step-num">CPU</span>Intel 8th Gen i5 o superior</li>
+      <li><span class="step-num">RAM</span>8 GB mínimo / 16 GB con OrionNET</li>
+      <li><span class="step-num">HDD</span>10 GB de espacio disponible</li>
+      <li><span class="step-num">RES</span>Resolución de pantalla 1440 x 900</li>
+      <li><span class="step-num">.NET</span>Framework 4.5 para v14.x</li>
+    </ul>
+    <div class="info-box"><strong>💡 Nota:</strong> Más RAM mejora el rendimiento más que una CPU más rápida.</div>`,
+    install_steps: `<h4>📥 Pasos de Instalación</h4>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Inicia sesión como Administrador de Windows</li>
+      <li><span class="step-num">02</span>Cierra todas las aplicaciones en ejecución</li>
+      <li><span class="step-num">03</span>Descarga desde <strong>www.nov.com/ctes</strong> con tus credenciales NOV CTES</li>
+      <li><span class="step-num">04</span>Ejecuta <span class="tag-inline">CerberusInstall.exe</span></li>
+      <li><span class="step-num">05</span>Sigue el asistente CTES de instalación</li>
+      <li><span class="step-num">06</span>Reinicia si se te solicita — Cerberus continuará automáticamente</li>
+      <li><span class="step-num">07</span>Obtén tu código de autorización para activar la copia</li>
+    </ul>
+    <div class="warn-box">⚠️ Ten lista tu contraseña (sensible a mayúsculas) antes de ejecutar el instalador.</div>`
+  },
+  cerberus14: {
+    title: 'Usando Cerberus 14',
+    chip: 'CH 3',
+    overview: `<h4>🖥️ Menú Principal de Cerberus</h4>
+    <p style="margin-bottom:10px;font-size:13px;color:var(--text-secondary)">La pantalla principal es el "hub" central del trabajo. Se organiza en:</p>
+    <ul class="step-list">
+      <li><span class="step-num">📁</span><strong>Navigation Tree</strong> — Árbol jerárquico de proyectos, pozos y strings en el panel superior izquierdo</li>
+      <li><span class="step-num">📋</span><strong>Navigation List</strong> — Lista de ítems al seleccionar una carpeta del árbol</li>
+      <li><span class="step-num">👁️</span><strong>View Config Area</strong> — Panel inferior izquierdo: filtra por tipo de vista y proyecto</li>
+      <li><span class="step-num">🚀</span><strong>Model Access Area</strong> — Botones para lanzar Reel-Trak, Orpheus, Hydra, etc.</li>
+      <li><span class="step-num">📂</span><strong>Menu Bar</strong> — File, Models, Calculations, Editors, Utilities, Orion, Options, Help</li>
+    </ul>
+    <div class="info-box"><strong>Atajos clave:</strong> <span class="tag-inline">Ctrl+E</span> Expandir árbol &nbsp; <span class="tag-inline">Ctrl+Q</span> Colapsar árbol</div>`
+  },
+  reeltrak: {
+    title: 'Reel-Trak — Fatiga de CT',
+    chip: 'CH 4',
+    intro: `<h4>🔄 ¿Qué es Reel-Trak?</h4>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Reel-Trak rastrea la <strong>fatiga acumulada del Coiled Tubing (CT)</strong> a lo largo de múltiples trabajos. Registra cada ciclo de flexión-extensión al pasar por el cuello del injector y el arco del carrete.</p>
+    <h4 style="margin-top:12px;">📋 Crear un Nuevo Job</h4>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Desde el Menú Principal → haz clic en <span class="tag-inline">Reel-Trak</span></li>
+      <li><span class="step-num">02</span>Selecciona <strong>File > New Job</strong></li>
+      <li><span class="step-num">03</span>Usa el <strong>Job Wizard</strong> para configurar: CT String, Reel, Well y fluido</li>
+      <li><span class="step-num">04</span>Define los parámetros del trabajo: profundidad objetivo, tipo de operación</li>
+      <li><span class="step-num">05</span>Completa el <strong>Job Log</strong> registrando las corridas reales</li>
+      <li><span class="step-num">06</span>Revisa el <strong>estado de fatiga</strong> actualizado del string</li>
+    </ul>`
+  },
+  orpheus: {
+    title: 'Orpheus — Fuerzas',
+    chip: 'CH 5',
+    intro: `<h4>⚡ ¿Qué es Orpheus?</h4>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Orpheus modela las <strong>fuerzas que actúan sobre el CT</strong> durante la corrida: fricción, peso, flujo de fluido y efectos de pandeo (buckling). Es el módulo principal para determinar si se puede alcanzar la profundidad objetivo.</p>
+    <h4 style="margin-top:12px;">🔬 Proceso en Orpheus</h4>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Accede desde <span class="tag-inline">Models > Orpheus</span></li>
+      <li><span class="step-num">02</span>Abre o crea un <strong>Proyecto</strong> con: pozo, string CT, fluido y BHA</li>
+      <li><span class="step-num">03</span>Define los <strong>parámetros de cálculo</strong>: profundidades, tasas de flujo, presiones</li>
+      <li><span class="step-num">04</span>Corre los cálculos de <strong>Fluid Flow</strong> y <strong>Force Monitor</strong></li>
+      <li><span class="step-num">05</span>Analiza gráficas de: fuerza vs profundidad, pandeo sinusoidal/helicoidal</li>
+      <li><span class="step-num">06</span>Verifica si hay <strong>Lock-up</strong> antes de la profundidad objetivo</li>
+    </ul>
+    <div class="warn-box">⚠️ Si las fuerzas muestran <strong>pandeo helicoidal</strong>, el CT puede no llegar al objetivo. Ajusta el fluido o el BHA.</div>`
+  },
+  hydra: {
+    title: 'Hydra — Hidráulica',
+    chip: 'CH 6',
+    intro: `<h4>💧 Hidráulica con Hydra</h4>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Hydra modela el <strong>flujo de fluidos</strong> dentro y fuera del CT. Calcula presiones de circulación, caídas de presión en herramientas y restricciones, y condiciones de limpieza de pozo.</p>
+    <h4 style="margin-top:12px;">📐 Flujo de trabajo</h4>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Accede desde <span class="tag-inline">Models > Hydra</span></li>
+      <li><span class="step-num">02</span>Configura el proyecto con: pozo, string, fluido y BHA</li>
+      <li><span class="step-num">03</span>Define <strong>tasas de flujo</strong> y condiciones de superficie</li>
+      <li><span class="step-num">04</span>Corre los cálculos hidráulicos</li>
+      <li><span class="step-num">05</span>Analiza las <strong>gráficas de presión</strong> vs profundidad</li>
+    </ul>`
+  },
+  well: {
+    title: 'Well Editor',
+    chip: 'CH 13',
+    intro: `<h4>🕳️ Configurar un Pozo</h4>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Ve a <span class="tag-inline">Editors > Well Editor</span></li>
+      <li><span class="step-num">02</span>Crea un nuevo pozo con <strong>File > New</strong></li>
+      <li><span class="step-num">03</span>Ingresa el <strong>perfil de desviación</strong>: MD, inclinación, azimut</li>
+      <li><span class="step-num">04</span>Define la <strong>geometría del casing/tubing</strong>: OD, ID, peso por pie</li>
+      <li><span class="step-num">05</span>Ingresa datos de <strong>temperatura y presión</strong> del yacimiento</li>
+      <li><span class="step-num">06</span>Guarda con <strong>File > Save</strong> o <strong>Check In</strong> al Cloud</li>
+    </ul>`
+  },
+  fluid: {
+    title: 'Fluid Editor',
+    chip: 'CH 15',
+    intro: `<h4>🧪 Gestión de Fluidos</h4>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Accede desde <span class="tag-inline">Editors > Fluid Editor</span></li>
+      <li><span class="step-num">02</span>Selecciona el tipo de fluido: Newtoniano, no-Newtoniano, gel, ácido, etc.</li>
+      <li><span class="step-num">03</span>Ingresa las <strong>propiedades reológicas</strong>: densidad, viscosidad, n', K'</li>
+      <li><span class="step-num">04</span>Calcula propiedades para <strong>variaciones de temperatura y presión</strong></li>
+      <li><span class="step-num">05</span>Aplica <strong>factores de corrección</strong> si es necesario</li>
+    </ul>
+    <div class="info-box"><strong>Tipos de fluidos:</strong> Agua, Nitrógeno, mezclas N2/líquido, geles de guar, ácidos, fluidos espumados</div>`
+  },
+  achilles: {
+    title: 'Achilles — Modelo de Fatiga',
+    chip: 'CH 17',
+    intro: `<h4>📊 Análisis de Fatiga con Achilles</h4>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Achilles es el módulo especializado para calcular la <strong>vida de fatiga restante</strong> del CT basándose en el historial de corridas y las condiciones mecánicas.</p>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Accede desde <span class="tag-inline">Calculations > Achilles</span></li>
+      <li><span class="step-num">02</span>Selecciona el <strong>CT String</strong> con su historial de fatiga</li>
+      <li><span class="step-num">03</span>Elige el <strong>modelo de fatiga</strong>: Lineal o No-Lineal</li>
+      <li><span class="step-num">04</span>Ingresa los parámetros del trabajo proyectado</li>
+      <li><span class="step-num">05</span>Corre el cálculo y analiza la <strong>distribución de fatiga</strong> a lo largo del string</li>
+      <li><span class="step-num">06</span>Identifica la sección crítica con mayor daño acumulado</li>
+    </ul>
+    <div class="warn-box">⚠️ Si la fatiga acumulada supera el límite aceptable, considera retirar o recortar el string antes de la operación.</div>`
+  },
+  hercules: {
+    title: 'Hercules — Límites de Tubing',
+    chip: 'CH 18',
+    intro: `<h4>💪 Límites de Estrés con Hercules</h4>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Hercules calcula los <strong>límites mecánicos del CT</strong>: presión de ruptura, colapso, tensión máxima y carga de compresión.</p>
+    <ul class="step-list">
+      <li><span class="step-num">01</span>Accede desde <span class="tag-inline">Calculations > Hercules</span></li>
+      <li><span class="step-num">02</span>Define el proyecto con el CT String y las condiciones del pozo</li>
+      <li><span class="step-num">03</span>Ingresa presiones de operación: interna y externa</li>
+      <li><span class="step-num">04</span>Corre el cálculo para generar el <strong>sobre de carga</strong> (Load Envelope)</li>
+      <li><span class="step-num">05</span>Verifica que las cargas operacionales estén <strong>dentro del sobre seguro</strong></li>
+    </ul>
+    <div class="info-box"><strong>Límites calculados:</strong> Burst · Collapse · Tensión · Compresión</div>`
+  }
+};
+
+// ============ PREDEFINED RESPONSES ============
+const predefinedResponses = {
+  'inicio cerberus': knowledge.cerberus14?.overview,
+  'instalar': knowledge.instalacion?.install_steps,
+  'requisitos': knowledge.instalacion?.steps,
+  'reel-trak': knowledge.reeltrak?.intro,
+  'orpheus': knowledge.orpheus?.intro,
+  'hydra': knowledge.hydra?.intro,
+  'well editor': knowledge.well?.intro,
+  'fluid': knowledge.fluid?.intro,
+  'achilles': knowledge.achilles?.intro,
+  'hercules': knowledge.hercules?.intro,
+};
+
+// ============ SYSTEM PROMPT FOR AI ============
+const systemPrompt = `Eres el Tutor Oficial del Simulador Cerberus 14.5 de NOV CTES, especializado en operaciones de Coiled Tubing (CT), Wireline y Jointed Pipe.
+
+CONTEXTO DEL SIMULADOR:
+Cerberus 14.5 es software de modelado para operaciones de pozo. Sus módulos principales son:
+- Reel-Trak: rastreo de fatiga acumulada del CT
+- Orpheus: cálculo de fuerzas (fricción, pandeo, lock-up) para CT/WL/JP
+- Hydra: modelado hidráulico y flujo de fluidos
+- Velocity String: optimización de strings de velocidad
+- PACA: análisis de Packer y Completion
+- Solids Cleanout: limpieza de sólidos
+- Editores: String Editor, Tool String Editor, Tool Editor, Well Editor, Reel Editor, Fluid Editor, Equipment Editor
+- Cálculos avanzados: Achilles (fatiga CT), Hercules (límites de tubing/stress)
+
+INSTRUCCIONES:
+1. Responde SIEMPRE en español técnico de la industria petrolera
+2. Usa terminología correcta: CT (Coiled Tubing), BHA (Bottom Hole Assembly), MD (Measured Depth), SITP, WHP, etc.
+3. Cuando des pasos, sé específico con nombres exactos de menús, botones y parámetros del simulador
+4. Si el usuario pregunta sobre una tarea, guíalo paso a paso
+5. Usa HTML para formatear: <h4> para títulos, <ul class="step-list"><li><span class="step-num">01</span>texto</li></ul> para pasos numerados, <div class="info-box"> para notas informativas, <div class="warn-box"> para advertencias, <span class="tag-inline">texto</span> para nombres de menú/botones
+6. Sé conciso pero completo. Máximo 400 palabras por respuesta
+7. Si no sabes algo específico de Cerberus, dilo honestamente y sugiere consultar el manual oficial`;
+
+// ============ FUNCTIONS ============
+
+function selectModule(el, moduleId, icon, title, desc) {
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  currentModule = moduleId;
+  document.getElementById('moduleIcon').textContent = icon;
+  document.getElementById('moduleTitle').textContent = title;
+  document.getElementById('moduleDesc').textContent = desc;
+  // Extract chip from description
+  const match = desc.match(/Cap\. (\d+)/);
+  document.getElementById('moduleChip').textContent = match ? `CAP ${match[1]}` : 'MÓDULO';
+
+  // Auto-send context message
+  const msg = `Cuéntame sobre ${title} en Cerberus 14.5`;
+  sendQuickMsg(msg);
+}
+
+function sendQuickMsg(text) {
+  document.getElementById('chatInput').value = text;
+  sendMessage();
+}
+
+function handleKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || isTyping) return;
+
+  // Hide welcome screen
+  const welcome = document.getElementById('welcomeScreen');
+  if (welcome) welcome.remove();
+
+  // Add user message
+  addMessage('user', text);
+  input.value = '';
+  input.style.height = 'auto';
+
+  // Show typing
+  isTyping = true;
+  document.getElementById('sendBtn').disabled = true;
+  const typingId = addTyping();
+
+  // Get response
+  let response;
+  if (useAI) {
+    response = await getAIResponse(text);
+  } else {
+    response = await getPredefinedResponse(text);
+  }
+
+  // Remove typing, add response
+  removeTyping(typingId);
+  isTyping = false;
+  document.getElementById('sendBtn').disabled = false;
+  addMessage('bot', response);
+}
+
+async function getAIResponse(userText) {
+  try {
+    const res = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: geminiModel,
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{
+          role: 'user',
+          parts: [{ text: `Módulo actual: ${currentModule}\n\nPregunta: ${userText}` }]
+        }],
+        generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+      })
+    });
+    const data = await res.json();
+    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+      return data.candidates[0].content.parts[0].text;
+    }
+    if (data.error) {
+      return `<div class="warn-box">⚠️ Error Gemini: <strong>${data.error.message}</strong></div>\n\n${getFallback(userText)}`;
+    }
+    return getFallback(userText);
+  } catch (e) {
+    return `<div class="warn-box">⚠️ Error de conexión.<br><small>${e.message}</small></div>\n\n${getFallback(userText)}`;
+  }
+}
+
+async function getPredefinedResponse(text) {
+  await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
+  return getFallback(text);
+}
+
+function getFallback(text) {
+  const lower = text.toLowerCase();
+
+  // Module-specific responses
+  const mod = knowledge[currentModule];
+  if (mod) {
+    const content = mod.intro || mod.overview || mod.steps || mod.install_steps;
+    if (content) return content + getQuickReplies(currentModule);
+  }
+
+  // Keyword matching
+  for (const [key, val] of Object.entries(predefinedResponses)) {
+    if (lower.includes(key) && val) return val + getQuickReplies(currentModule);
+  }
+
+  // Generic
+  if (lower.includes('cloud') || lower.includes('nube')) {
+    return `<h4>☁️ Cerberus Cloud</h4>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Cerberus Cloud es el repositorio central de datos de v14.5. Permite compartir datos entre todos los usuarios autorizados de una organización.</p>
+    <ul class="step-list">
+      <li><span class="step-num">🔐</span>Requiere cuenta <strong>MyNOV</strong> para cada usuario</li>
+      <li><span class="step-num">📤</span><strong>Check In</strong>: Publica tus cambios locales al Cloud</li>
+      <li><span class="step-num">📥</span><strong>Check Out</strong>: Reserva un ítem para editarlo exclusivamente</li>
+      <li><span class="step-num">💾</span><strong>Offline Copy</strong>: Descarga lectura local cuando no hay internet</li>
+    </ul>
+    <div class="info-box"><strong>Dato:</strong> Los datos importados se guardan como <span class="tag-inline">(local)</span> hasta hacer Check In.</div>`;
+  }
+
+  if (lower.includes('resumen') || lower.includes('módulos')) {
+    return `<h4>📋 Módulos de Cerberus 14.5</h4>
+    <ul class="step-list">
+      <li><span class="step-num">🔄</span><strong>Reel-Trak</strong> — Rastreo de fatiga acumulada del CT</li>
+      <li><span class="step-num">⚡</span><strong>Orpheus</strong> — Fuerzas: fricción, pandeo, lock-up (CT/WL/JP)</li>
+      <li><span class="step-num">💧</span><strong>Hydra</strong> — Hidráulica y flujo de fluidos (CT/JP)</li>
+      <li><span class="step-num">🌀</span><strong>Velocity String</strong> — Optimización de strings (CT/JP)</li>
+      <li><span class="step-num">🔩</span><strong>PACA</strong> — Análisis de Packer y Completion</li>
+      <li><span class="step-num">🪨</span><strong>Solids Cleanout</strong> — Limpieza de sólidos con CT</li>
+      <li><span class="step-num">📊</span><strong>Achilles</strong> — Modelo de fatiga avanzado del CT</li>
+      <li><span class="step-num">💪</span><strong>Hercules</strong> — Límites de estrés del tubing</li>
+    </ul>
+    <div class="info-box"><strong>💡</strong> Selecciona cualquier módulo en el panel izquierdo para una guía detallada.</div>`;
+  }
+
+  return `<p style="color:var(--text-secondary)">Soy tu tutor para el Simulador Cerberus 14.5. Escribe tu pregunta sobre Cerberus 14.5 arriba. <strong style="color:var(--accent-teal)">🤖 Gemini IA activo.</strong></p>
+  <div class="info-box"><strong>💡 Puedo guiarte en:</strong><br>
+  Instalación · Cerberus Cloud · Reel-Trak · Orpheus · Hydra · Well Editor · String Editor · Fluid Editor · Achilles · Hercules · y más</div>
+  <div class="quick-replies">
+    <button class="quick-reply-btn" onclick="sendQuickMsg('Dame un resumen de todos los módulos')">📋 Ver módulos</button>
+    <button class="quick-reply-btn" onclick="sendQuickMsg('¿Cómo instalo Cerberus 14.5?')">⚙️ Instalación</button>
+    <button class="quick-reply-btn" onclick="sendQuickMsg('Explícame Orpheus')">⚡ Orpheus</button>
+  </div>`;
+}
+
+function getQuickReplies(module) {
+  const replies = {
+    reeltrak: ['¿Cómo uso el Job Wizard?', '¿Qué datos necesito para el Job Log?', '¿Cómo empaqueto un Job?'],
+    orpheus: ['¿Qué es el Lock-up?', '¿Cómo configuro el Force Monitor?', '¿Cómo interpreto las gráficas de pandeo?'],
+    hydra: ['¿Cómo modelo fluidos espumados?', '¿Qué es la Velocity String en Hydra?', 'Explícame las restricciones hidráulicas'],
+    well: ['¿Cómo importo un survey de pozo?', '¿Cómo defino el casing?', '¿Puedo tener múltiples pozos en un proyecto?'],
+    achilles: ['¿Cuál es la diferencia entre modelo lineal y no-lineal?', '¿Cómo veo la distribución de fatiga?', '¿Cuándo debo retirar un string?'],
+  };
+  const list = replies[module];
+  if (!list) return '';
+  return `<div class="quick-replies">${list.map(r => `<button class="quick-reply-btn" onclick="sendQuickMsg('${r}')">${r}</button>`).join('')}</div>`;
+}
+
+function addMessage(role, content) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+
+  const avatar = role === 'bot'
+    ? '<div class="msg-avatar">CT</div>'
+    : '<div class="msg-avatar">USR</div>';
+
+  div.innerHTML = `${avatar}<div class="msg-bubble">${content}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('messages');
+  const id = 'typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = id;
+  div.innerHTML = `<div class="msg-avatar">CT</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+</script>
+</body>
+</html>
