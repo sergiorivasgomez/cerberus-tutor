@@ -898,9 +898,8 @@
 
 <script>
 // ============ STATE ============
-let apiKey = null;
 let geminiModel = 'gemini-2.0-flash';
-let useAI = false;
+const useAI = true;
 let currentModule = 'inicio';
 let isTyping = false;
 
@@ -1140,7 +1139,7 @@ async function sendMessage() {
 
   // Get response
   let response;
-  if (useAI && apiKey) {
+  if (useAI) {
     response = await getAIResponse(text);
   } else {
     response = await getPredefinedResponse(text);
@@ -1229,7 +1228,7 @@ function getFallback(text) {
     <div class="info-box"><strong>💡</strong> Selecciona cualquier módulo en el panel izquierdo para una guía detallada.</div>`;
   }
 
-  return `<p style="color:var(--text-secondary)">Soy tu tutor para el Simulador Cerberus 14.5. Para respuestas inteligentes, activa la <strong style="color:var(--accent-blue)">API Key de Google Gemini</strong> en la configuración.</p>
+  return `<p style="color:var(--text-secondary)">Soy tu tutor para el Simulador Cerberus 14.5. Escribe tu pregunta sobre Cerberus 14.5 arriba. <strong style="color:var(--accent-teal)">🤖 Gemini IA activo.</strong></p>
   <div class="info-box"><strong>💡 Puedo guiarte en:</strong><br>
   Instalación · Cerberus Cloud · Reel-Trak · Orpheus · Hydra · Well Editor · String Editor · Fluid Editor · Achilles · Hercules · y más</div>
   <div class="quick-replies">
